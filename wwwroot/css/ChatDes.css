@@ -1,0 +1,162 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+
+for details on configuring this project to bundle and minify static web assets. */
+body {
+    font-family: Verdana, Arial, Sans-Serif;
+}
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    /* Set the fixed height of the footer here */
+    height: 60px;
+    line-height: 60px; /* Vertically center the text there */
+}
+
+
+/* Chat containers */
+#chat .container {
+    background-color: #d4d1d4;
+    border-radius: 30px;
+    padding: 10px;
+    margin: 10px 0;
+    width: 100%;
+}
+
+#chat .sender {
+    font-size: 0.8em;
+}
+
+/* Darker chat container */
+#chat .darker {
+    border-color: #fff;
+    background-color: #6e00ff;
+}
+
+/* Clear floats */
+#chat .container::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+/* Style images */
+#chat .container img {
+    float: left;
+    max-width: 60px;
+    width: 100%;
+    margin-right: 20px;
+    border-radius: 50%;
+}
+
+    /* Style the right image */
+    #chat .container img.right {
+        float: right;
+        margin-left: 20px;
+        margin-right: 0;
+        border-radius: 50%;
+    }
+
+/* Style time text */
+#chat .time-right {
+    float: right;
+    color: #000000;
+}
+
+/* Style time text */
+#chat .time-left {
+    float: left;
+    color: #fff;
+}
+
+#chat .text-righte {
+    text-align: right;
+
+}
+
+/* Style time text */
+#chat .text-lefte {
+    text-align: left;
+    color: #fff;
+}
+
+
+
+
+
+
+
+.message-text {
+    white-space: pre-wrap;
+}
+
+    .message-text > p {
+        display: inline-block;
+    }
+
+
+.chat_field {
+    position: relative;
+    margin: 5px 0 5px 0;
+    width: 50%;
+    font-family: 'Roboto';
+    font-size: 12px;
+    line-height: 30px;
+    font-weight: 500;
+    color: #4b4b4b;
+    -webkit-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    border: none;
+    outline: none;
+    display: inline-block;
+    white-space: pre-line
+}
+
+    .chat_field.chat_message {
+        height: 30px;
+        resize: none;
+        font-size: 13px;
+        font-weight: 400;
+    }

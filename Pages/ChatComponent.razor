@@ -1,0 +1,169 @@
+﻿@page "/chat"
+@page "/chat/{chatId}/"
+@using Westwind.AspNetCore.Markdown
+@using Microsoft.AspNetCore.Components;
+@inject ApplicationDbContext _db;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject UserManager<User> _userManager;
+@inject NavigationManager NavigationManager
+@inject SingleChatService _chatService;
+@inject IJSRuntime JsRuntime;
+@implements IDisposable
+<h3>
+    Chat
+    @if (groupChat != null)
+    {
+        @groupChat.Count
+    }
+</h3>
+@**
+    <head>
+        <link rel="stylesheet" href="~/css/Textcss.css" />
+        <link rel="stylesheet" href="~/css/ChatDes.css" />
+    </head>
+    **@
+<AuthorizeView>
+    <Authorized>
+
+        <h2 class="text-center text-primary"> Chat </h2>
+        <div class="container ">
+            <div class="row ">
+                <div class="col-md-3"></div>
+                <div class="col-md-6  " id="chat">
+                    @if (Model != null)
+                    {
+                        int i = 0, j = 0;
+                        @foreach (var message in Model.OrderBy(m => m.When))
+                        {
+                            i++;
+                        }
+                        i = i - 10;
+                        @foreach (var message in Model.OrderBy(m => m.When))
+                        {
+                            j++;
+
+                            if (j <= i)
+                            {
+
+                            }
+                            else
+                            {
+                                string containerClass, timePosition, textAlign, contcolor;
+                                if (userName == message.UserName)
+                                {
+                                    containerClass = "container darker ";
+                                    timePosition = "time-left text-light";
+                                    textAlign = "text-left text-white";
+                                    contcolor = "bg-primary";
+                                }
+                                else
+                                {
+                                    containerClass = "container";
+                                    timePosition = "time-right";
+                                    textAlign = "text-right";
+                                    contcolor = "bg-light";
+                                }
+
+                                <div class="@containerClass @contcolor">
+                                    <p class="sender @textAlign">@message.UserName</p>
+                                    <span class="@textAlign message-text">@MarkdownParser.Parse(message.Text)</span>
+                                    <span class="@timePosition">@message.When.ToString()</span>
+
+                                </div>
+
+                            }
+                        }
+
+                        @*
+                            <div class="row">
+                                <div class="container">
+                                    <p class="sender text-center">Admin</p>
+                                    <p class="text-center">Welcome to chat! @userName</p>
+                                </div>
+                            </div>
+                        *@
+                    }
+                </div>
+            </div>
+            <div class="col-md-12">
+                <textarea id="chatSend" class="form-control" name="chat_message" placeholder="Send a message" rows="3" @bind-value="@newMessage" @bind-value:event="oninput"></textarea>
+                <input type="submit" id="mybutton" @onclick="SendAll" class="btn btn-outline-primary btn-block" />
+
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <h1>Authentication Failure!</h1>
+        <p>You're not signed in.</p>
+        <div class="textIntroduction"> If you what see table with accounts, you need to login! </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+
+@code {
+    [Parameter]
+    public string chatId { get; set; }
+    private User user { get; set; }
+
+    public GroupChat groupChat { get; set; }
+
+    private List<Message> Model { get; set; } = new List<Message>();
+    private List<User> users;
+    private int Counter = 1;
+    [Parameter] public string newMessage { get; set; } = null;
+    string userName { get; set; } = null;
+
+    //static List<Action<Tuple<string, string>>> eventCallbacks = new List<Action<Tuple<string, string>>>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await _chatService.GetCurrentUser();
+        //eventCallbacks.Add(new Action<Tuple<string, string>>(OnClick));
+        users = new List<User> { new User(), new User() };
+
+        if (Int32.TryParse(chatId, out int id))
+        {
+            groupChat = _chatService.GetActiveChat(id);
+            if (groupChat != null && groupChat.ChatUsers.Exists(cu => cu.UserId == user.Id))
+            {
+                groupChat.Notify += OnClick;
+                groupChat.Count += 1;
+                Model = groupChat.Messages;
+            }
+            else
+                NavigationManager.NavigateTo("/");
+        }
+        else
+            NavigationManager.NavigateTo("/");
+    }
+
+    
+
+    public async Task SendAll(MouseEventArgs e)
+    {
+        groupChat?.SendMessage(newMessage, user, _db);
+        newMessage = null;
+
+    }
+
+    public void OnClick(Message newMessage)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (groupChat != null)
+            groupChat.Notify -= OnClick;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JsRuntime.InvokeAsync<object>("initChatEvent");
+        }
+    }
+}

@@ -1,0 +1,62 @@
+﻿@page "/users"
+@inject ApplicationDbContext _db
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<User> _userManager
+@inject SingleChatService _chatService
+@attribute [Authorize]
+<h3>Users</h3>
+
+@foreach (var employee in employees)
+{
+    <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="@employee.user.UserName" @bind="@employee.Checked">
+        <label class="custom-control-label" for="@employee.user.UserName">@employee.user.UserName</label>
+    </div>
+}
+<button type="button" class="btn btn-primary btn-lg" @onclick="@CreateChat">Создать беседу</button>
+
+
+@code{
+
+    List<Employee> employees { get; set; } = new List<Employee>();
+    public User user { get; set; }
+
+    List<User> UsersAll { get; set; }
+
+    public class Employee
+    {
+        public User user { get; set; }
+        public bool Checked { get; set; }
+        public Employee(User user)
+        {
+            this.user = user;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claimUser = authState.User;
+        user = await _userManager.GetUserAsync(claimUser);
+
+        UsersAll = _db.Users.Where(u => u.Id != user.Id).ToList();
+        employees = UsersAll.Select(u => new Employee(u)).ToList();
+    }
+
+    public void CreateChat()
+    {
+        var userCheckeds = employees.Where(e => e.Checked).Select(e => e.user).ToList();
+        userCheckeds.Add(user);
+        if (employees.Count(e => e.Checked) > 0 && _chatService.IsExists(userCheckeds) == false)
+        {
+            GroupChat groupChat = new GroupChat();
+            _db.GroupChats.Add(groupChat);
+            _db.SaveChanges();
+
+            userCheckeds.ForEach(u => u.ChatUsers.Add(new ChatUser { GroupChat = groupChat, User = u }));
+            user.ChatUsers.Add(new ChatUser { GroupChat = groupChat, User = user });
+            _db.SaveChanges();
+        }
+
+    }
+} 

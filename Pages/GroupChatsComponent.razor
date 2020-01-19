@@ -1,0 +1,56 @@
+﻿@page "/groupchats"
+@inject ApplicationDbContext _db;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject UserManager<User> _userManager;
+@inject NavigationManager NavigationManager
+<h3>GroupChatsComponent</h3>
+
+<ul class="list-group">
+    @foreach (var chat in groupChats)
+    {
+        <li class="list-group-item">
+            @{ var groupusers = chat.ChatUsers.Select(cu => cu.User).ToList(); }
+            @chat.Id
+            <button type="button" class="btn btn-primary btn-lg" @onclick="@(e => OpenChat(chat))">Открыть беседу</button>
+            @if (groupusers.Count > 0)
+            {
+                <ul class="list-group">
+                    @foreach (var user in groupusers)
+                    {
+                        <li class="list-group-item">
+                            @user.UserName
+                        </li>
+                    }
+                </ul>
+            }
+
+
+        </li>
+    }
+</ul>
+
+@code {
+    List<GroupChat> groupChats = new List<GroupChat>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claimUser = authState.User;
+        var user123 = await _userManager.GetUserAsync(claimUser);
+        var user = _db.Users.Include(u => u.ChatUsers).ThenInclude(cu => cu.GroupChat).ToList().FirstOrDefault(u => u.UserName == claimUser.Identity.Name);
+        var user2 = _db.Users.FirstOrDefault(u => u.UserName == claimUser.Identity.Name);
+        Console.WriteLine($"################# {user == user2} #####################################");
+        Console.WriteLine($"@@@@@@@@@@@@@@@@@ {user123 == user2} #####################################");
+        Console.WriteLine($"@@@@@@@@@@@@@@@@@ {user123 == user} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        //var azaz = _db.GroupChats.Include();
+        groupChats = user.ChatUsers.Select(cu => cu.GroupChat).ToList();
+        //groupChats = _db.Users.Where(g => g.ChatUsers.Any(u => u.UserName == user.Identity.Name)).ToList();
+        Console.WriteLine($"count {groupChats.Count} #####################################");
+    }
+
+    public void OpenChat(GroupChat chat)
+    {
+        NavigationManager.NavigateTo($"chat/{chat.Id}/", true);
+
+    }
+}
