@@ -10,14 +10,12 @@ namespace Chat.Models
 {
     public class GroupChat
     {
-        const int limitMessage = 10;
+        public const int limitMessage = 10;
 
         [Key]
         public int Id { get; set; }
         public virtual List<Message> Messages { get; set; }
         public virtual List<ChatUser> ChatUsers { get; set; }
-        [NotMapped]
-        public int Count { get; set; } = 0;
 
         public GroupChat()
         {
@@ -26,29 +24,22 @@ namespace Chat.Models
         }
 
         public delegate void SendChatHandler(Message newMessage);
-        public event SendChatHandler Notify;
+        public event SendChatHandler Sent;
+        public event Action<List<Message>> Updated;
 
-        public void SendMessage(string newMessage, User user, ApplicationDbContext _db)
+        public void SendMessage(Message message)
         {
-            var message = new Message
-            {
-                UserName = user.UserName,
-                Text = newMessage,
-                GroupChatID = Id,
-                When = DateTime.Now
-            };
-            Messages.Add(message);
-            _db.Messages.Add(message);
-            _db.SaveChanges();
-            if (Messages.Count > limitMessage)
-            {
-                var removelist = Messages.Take(Messages.Count - limitMessage).ToList();
-                removelist.ForEach(m => _db.Entry(m).State = Microsoft.EntityFrameworkCore.EntityState.Deleted);
-                Messages.RemoveRange(0, Messages.Count - limitMessage);
-                _db.SaveChanges();
-            }
-            
-            Notify?.Invoke(message);
+            Sent?.Invoke(message);
+        }
+
+        public void UpdateChat(List<Message> removeMessages)
+        {
+            Updated?.Invoke(removeMessages);
+        }
+
+        static public void RemoveMessages(List<Message> messages, List<Message> removedMessages)
+        {
+            removedMessages.ForEach(m => messages.RemoveAt(messages.FindIndex(m2 => m.Id == m2.Id)));
         }
     }
 }

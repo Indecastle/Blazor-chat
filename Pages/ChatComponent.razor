@@ -12,36 +12,29 @@
 @inject SingleChatService _chatService;
 @inject IJSRuntime JsRuntime;
 @implements IDisposable
-<h3>
-    Chat
-    @if (groupChat != null)
-    {
-        @groupChat.Count
-    }
-</h3>
 @**
     <head>
         <link rel="stylesheet" href="~/css/Textcss.css" />
         <link rel="stylesheet" href="~/css/ChatDes.css" />
     </head>
-    **@
+**@
 <AuthorizeView>
     <Authorized>
-
+        <button type="button" class="btn btn-lg btn-primary"   @onclick="@RemoveSelectedMessages">remove Message</button>
         <h2 class="text-center text-primary"> Chat </h2>
         <div class="container ">
             <div class="row ">
                 <div class="col-md-3"></div>
                 <div class="col-md-6  " id="chat">
-                    @if (Model != null)
+                    @if (Messages != null)
                     {
                         int i = 0, j = 0;
-                        @foreach (var message in Model.OrderBy(m => m.When))
+                        @foreach (var message in Messages.OrderBy(m => m.When))
                         {
                             i++;
                         }
                         i = i - 10;
-                        @foreach (var message in Model.OrderBy(m => m.When))
+                        @foreach (var message in Messages.OrderBy(m => m.When))
                         {
                             j++;
 
@@ -54,36 +47,31 @@
                                 string containerClass, timePosition, textAlign, contcolor;
                                 if (user.UserName == message.UserName)
                                 {
-                                    containerClass = "container darker ";
-                                    timePosition = "time-left text-light";
-                                    textAlign = "text-left text-white";
-                                    contcolor = "bg-primary";
+                                    contcolor = message.Selecting ? "bg-info" : "bg-primary";
+                                    <div class="container darker @contcolor" @onclick="@(e => SelectMessage(message))">
+                                        <p class="sender text-left text-white message-sender">@message.UserName</p>
+                                        <div class="text-left text-white message-text">@MarkdownParser.Parse(message.Text)</div>
+                                        <span class="time-left text-light">@message.When.ToString()</span>
+                                    </div>
                                 }
                                 else
                                 {
-                                    containerClass = "container";
-                                    timePosition = "time-left";
-                                    textAlign = "text-left";
-                                    contcolor = "bg-light";
+                                    <div class="container bg-light">
+                                        <p class="sender text-left message-sender">@message.UserName</p>
+                                        <div class="text-left message-text">@MarkdownParser.Parse(message.Text)</div>
+                                        <span class="time-left">@message.When.ToString()</span>
+                                    </div>
                                 }
-
-                                <div class="@containerClass @contcolor">
-                                    <p class="sender @textAlign message-sender">@message.UserName</p>
-                                    <div class="@textAlign message-text">@MarkdownParser.Parse(message.Text)</div>
-                                    <span class="@timePosition">@message.When.ToString()</span>
-
-                                </div>
-
                             }
                         }
 
                         @*
-                            <div class="row">
-                                <div class="container">
-                                    <p class="sender text-center">Admin</p>
-                                    <p class="text-center">Welcome to chat! @userName</p>
-                                </div>
-                            </div>
+            <div class="row">
+                <div class="container">
+                    <p class="sender text-center">Admin</p>
+                    <p class="text-center">Welcome to chat! @userName</p>
+                </div>
+            </div>
                         *@
                     }
                 </div>
@@ -109,63 +97,41 @@
 
 
 
+
 @code {
-    IFileListEntry[] selectedFiles;
     [Parameter]
     public string chatId { get; set; }
     private User user { get; set; }
-
     public GroupChat groupChat { get; set; }
+    private List<Message> Messages { get; set; } = new List<Message>();
 
-    private List<Message> Model { get; set; } = new List<Message>();
-    private List<User> users;
-    private int Counter = 1;
-    [Parameter] public string newMessage { get; set; } = null;
+    public string newMessage { get; set; } = null;
     string userName { get; set; } = null;
-
-    //static List<Action<Tuple<string, string>>> eventCallbacks = new List<Action<Tuple<string, string>>>();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        user = await _chatService.GetCurrentUser();
-        //eventCallbacks.Add(new Action<Tuple<string, string>>(OnClick));
-        users = new List<User> { new User(), new User() };
 
-        if (Int32.TryParse(chatId, out int id))
+        if (Int32.TryParse(chatId, out int id) && await _chatService.InitChat(id))
         {
-            groupChat = _chatService.GetActiveChat(id);
-            if (groupChat != null && groupChat.ChatUsers.Exists(cu => cu.UserId == user.Id))
-            {
-                groupChat.Notify += OnClick;
-                groupChat.Count += 1;
-                Model = groupChat.Messages;
-            }
-            else
-                NavigationManager.NavigateTo("/");
+            user = _chatService.user;
+            groupChat = _chatService.groupChat;
+            groupChat.Sent += GetMessage;
+            groupChat.Updated += UpdateMessages;
+            Messages = _chatService.LocalMessages;
+
         }
         else
             NavigationManager.NavigateTo("/");
     }
 
-
-
-    public async Task SendAll(MouseEventArgs e)
-    {
-        groupChat?.SendMessage(newMessage, user, _db);
-        newMessage = null;
-
-    }
-
-    public void OnClick(Message newMessage)
-    {
-        InvokeAsync(StateHasChanged);
-    }
-
     public void Dispose()
     {
         if (groupChat != null)
-            groupChat.Notify -= OnClick;
+        {
+            groupChat.Sent -= GetMessage;
+            groupChat.Updated -= UpdateMessages;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -175,6 +141,46 @@
             await JsRuntime.InvokeAsync<object>("initChatEvent");
         }
     }
+
+
+
+
+
+    public async Task SendAll(MouseEventArgs e)
+    {
+        _chatService.SendMessage(newMessage, user);
+        newMessage = null;
+
+    }
+
+    public void GetMessage(Message newMessage)
+    {
+        _chatService.GotMessage(newMessage);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void UpdateMessages(List<Message> removeMessages)
+    {
+        _chatService.UpdateMessages(removeMessages);
+        Messages = _chatService.LocalMessages;
+        InvokeAsync(StateHasChanged);
+    }
+
+
+
+    public void SelectMessage(Message message)
+    {
+        message.Selecting = !message.Selecting;
+    }
+
+    public void RemoveSelectedMessages()
+    {
+        _chatService.RemoveSelectedMessages();
+    }
+
+
+
+
 
 
     private string Token { get; set; }

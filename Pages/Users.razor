@@ -3,6 +3,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> _userManager
 @inject SingleChatService _chatService
+@inject NavigationManager NavigationManager
 @attribute [Authorize]
 @using BlazorInputFile
 <h3>Users</h3>
@@ -34,7 +35,7 @@
         {
             { "hidden", "" },
             { "id", "file"}
-        };
+            };
 
     List<Employee> employees { get; set; } = new List<Employee>();
     public User user { get; set; }
@@ -72,8 +73,8 @@
             _db.SaveChanges();
 
             userCheckeds.ForEach(u => u.ChatUsers.Add(new ChatUser { GroupChat = groupChat, User = u }));
-            user.ChatUsers.Add(new ChatUser { GroupChat = groupChat, User = user });
             _db.SaveChanges();
+            NavigationManager.NavigateTo($"chat/{groupChat.Id}/", true);
         }
 
     }
