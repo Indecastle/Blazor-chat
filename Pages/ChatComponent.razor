@@ -2,10 +2,13 @@
 @page "/chat/{chatId}/"
 @using Westwind.AspNetCore.Markdown
 @using Microsoft.AspNetCore.Components;
+@using BlazorInputFile;
+@using System.IO;
 @inject ApplicationDbContext _db;
 @inject AuthenticationStateProvider AuthenticationStateProvider;
 @inject UserManager<User> _userManager;
 @inject NavigationManager NavigationManager
+@inject IWebHostEnvironment _env;
 @inject SingleChatService _chatService;
 @inject IJSRuntime JsRuntime;
 @implements IDisposable
@@ -49,7 +52,7 @@
                             else
                             {
                                 string containerClass, timePosition, textAlign, contcolor;
-                                if (userName == message.UserName)
+                                if (user.UserName == message.UserName)
                                 {
                                     containerClass = "container darker ";
                                     timePosition = "time-left text-light";
@@ -59,14 +62,14 @@
                                 else
                                 {
                                     containerClass = "container";
-                                    timePosition = "time-right";
-                                    textAlign = "text-right";
+                                    timePosition = "time-left";
+                                    textAlign = "text-left";
                                     contcolor = "bg-light";
                                 }
 
                                 <div class="@containerClass @contcolor">
-                                    <p class="sender @textAlign">@message.UserName</p>
-                                    <span class="@textAlign message-text">@MarkdownParser.Parse(message.Text)</span>
+                                    <p class="sender @textAlign message-sender">@message.UserName</p>
+                                    <div class="@textAlign message-text">@MarkdownParser.Parse(message.Text)</div>
                                     <span class="@timePosition">@message.When.ToString()</span>
 
                                 </div>
@@ -86,9 +89,13 @@
                 </div>
             </div>
             <div class="col-md-12">
-                <textarea id="chatSend" class="form-control" name="chat_message" placeholder="Send a message" rows="3" @bind-value="@newMessage" @bind-value:event="oninput"></textarea>
+                <form method="post" action="#" enctype="multipart/form-data">
+                    <label class="fileContainer mydisable" id="fileSelectBox" ondragleave="leaveDrop2(event)" ondrop="onDrop(event)" ondragover="dragOver(event)">
+                        <InputFile multiple OnChange="ViewFile" />
+                    </label>
+                </form>
+                <textarea id="chatSend" class="form-control" style="resize:none;" name="chat_message" ondragover="dragOver2(event)" placeholder="Send a message" rows="3" @bind-value="@newMessage" @bind-value:event="oninput"></textarea>
                 <input type="submit" id="mybutton" @onclick="SendAll" class="btn btn-outline-primary btn-block" />
-
             </div>
         </div>
     </Authorized>
@@ -103,6 +110,7 @@
 
 
 @code {
+    IFileListEntry[] selectedFiles;
     [Parameter]
     public string chatId { get; set; }
     private User user { get; set; }
@@ -119,6 +127,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         user = await _chatService.GetCurrentUser();
         //eventCallbacks.Add(new Action<Tuple<string, string>>(OnClick));
         users = new List<User> { new User(), new User() };
@@ -139,7 +148,7 @@
             NavigationManager.NavigateTo("/");
     }
 
-    
+
 
     public async Task SendAll(MouseEventArgs e)
     {
@@ -164,6 +173,43 @@
         if (firstRender)
         {
             await JsRuntime.InvokeAsync<object>("initChatEvent");
+        }
+    }
+
+
+    private string Token { get; set; }
+    const string DefaultStatus = "Drop a text file here to view it, or click to choose a file";
+    const int MaxFileSize = 5 * 1024 * 1024; // 5MB
+    string status = DefaultStatus;
+    string UrlShared;
+
+    string fileName;
+    string fileTextContents;
+
+    async Task ViewFile(IFileListEntry[] files)
+    {
+        var file = files.FirstOrDefault();
+        if (file == null)
+        {
+            return;
+        }
+        else if (file.Size > MaxFileSize)
+        {
+            status = $"That's too big. Max size: {MaxFileSize} bytes.";
+        }
+        else
+        {
+            status = "Loading...";
+
+            using (var ms = new MemoryStream())
+            {
+                Task task1 = file.Data.CopyToAsync(ms);
+                await file.Data.CopyToAsync(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                File.WriteAllBytes(Path.Combine(_env.WebRootPath, "download", file.Name), ms.ToArray());
+            }
+
+            status = DefaultStatus;
         }
     }
 }

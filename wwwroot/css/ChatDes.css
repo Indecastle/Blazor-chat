@@ -1,14 +1,7 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 
 for details on configuring this project to bundle and minify static web assets. */
-body {
-    font-family: Verdana, Arial, Sans-Serif;
-}
-/* Sticky footer styles
--------------------------------------------------- */
-html {
-    font-size: 14px;
-}
+
 
 @media (min-width: 768px) {
     html {
@@ -35,15 +28,7 @@ button.accept-policy {
 
 /* Sticky footer styles
 -------------------------------------------------- */
-html {
-    position: relative;
-    min-height: 100%;
-}
 
-body {
-    /* Margin bottom by footer height */
-    margin-bottom: 60px;
-}
 
 .footer {
     position: absolute;
@@ -108,7 +93,6 @@ body {
 /* Style time text */
 #chat .time-left {
     float: left;
-    color: #fff;
 }
 
 #chat .text-righte {
@@ -126,15 +110,37 @@ body {
 
 
 
-
+.message-sender {
+    margin-bottom: 0.5rem;
+}
 
 .message-text {
     white-space: pre-wrap;
 }
-
-    .message-text > p {
+    .message-text > ul {
+        white-space: normal;
+    }
+    .message-text > p, h1, h2, h3, h4, h5, h6 {
         display: inline-block;
     }
+    .message-text > ul, ol, li {
+        margin-top: 0;
+        margin-bottom: 0;
+        white-space: normal;
+        list-style-type: disc;
+        margin-block-start: 0em;
+        margin-block-end: 0em;
+        margin-inline-start: 0px;
+        margin-inline-end: 0px;
+    }
+
+    .message-text > table {
+        table-layout: fixed;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+
 
 
 .chat_field {
@@ -160,3 +166,90 @@ body {
         font-size: 13px;
         font-weight: 400;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+.fileContainer {
+    display: block;
+    width: 100%;
+    height: calc(4.5em + .75rem + 2px);
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    /* background-clip: padding-box; */
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    overflow: auto;
+    resize: vertical;
+}
+
+    .fileContainer [type=file] {
+        cursor: pointer;
+        display: inline-block;
+        font-size: 999px;
+        filter: alpha(opacity=0);
+        min-height: 100%;
+        min-width: 100%;
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+
+.fileContainerFileName {
+    width: 360px;
+    border: 1px solid #a0a0a0;
+    display: inline-block;
+    padding: 0.5em;
+    border-right: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fileContainerButton {
+    padding: 0.5em;
+    border: 1px solid #a0a0a0;
+    float: right;
+    display: inline-block;
+}
+
+.fileContainerDragOver {
+    background-color: lightgray;
+    border: 2px solid #808080;
+}
+
+.mydiv1 {
+    display: block;
+    width: 100%;
+    
+    height: auto;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    /* background-clip: padding-box; */
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.mydisable {
+    display: none;
+}

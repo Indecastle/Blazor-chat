@@ -39,9 +39,7 @@
         var user123 = await _userManager.GetUserAsync(claimUser);
         var user = _db.Users.Include(u => u.ChatUsers).ThenInclude(cu => cu.GroupChat).ToList().FirstOrDefault(u => u.UserName == claimUser.Identity.Name);
         var user2 = _db.Users.FirstOrDefault(u => u.UserName == claimUser.Identity.Name);
-        Console.WriteLine($"################# {user == user2} #####################################");
-        Console.WriteLine($"@@@@@@@@@@@@@@@@@ {user123 == user2} #####################################");
-        Console.WriteLine($"@@@@@@@@@@@@@@@@@ {user123 == user} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        Console.WriteLine($"################# {user == user2} {user123 == user2} {user123 == user} #####################################");
         //var azaz = _db.GroupChats.Include();
         groupChats = user.ChatUsers.Select(cu => cu.GroupChat).ToList();
         //groupChats = _db.Users.Where(g => g.ChatUsers.Any(u => u.UserName == user.Identity.Name)).ToList();

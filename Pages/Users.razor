@@ -4,6 +4,7 @@
 @inject UserManager<User> _userManager
 @inject SingleChatService _chatService
 @attribute [Authorize]
+@using BlazorInputFile
 <h3>Users</h3>
 
 @foreach (var employee in employees)
@@ -14,9 +15,26 @@
     </div>
 }
 <button type="button" class="btn btn-primary btn-lg" @onclick="@CreateChat">Создать беседу</button>
+<div class="col-md-12">
+    <form method="post" action="#" enctype="multipart/form-data">
+        <label class="fileContainer mydisable" id="fileSelectBox" ondragleave="leaveDrop2(event)" ondrop="onDrop(event)" ondragover="dragOver(event)">
+            <InputFile OnChange="ViewFile" @attributes="InputAttributes" />
+        </label>
+    </form>
+
+    <textarea id="chatSend" class="form-control" style="resize:none;" name="chat_message" ondragover="dragOver2(event)" placeholder="Send a message" rows="3"></textarea>
+</div>
+
 
 
 @code{
+    [Parameter]
+    public Dictionary<string, object> InputAttributes { get; set; } =
+        new Dictionary<string, object>()
+        {
+            { "hidden", "" },
+            { "id", "file"}
+        };
 
     List<Employee> employees { get; set; } = new List<Employee>();
     public User user { get; set; }
@@ -59,4 +77,10 @@
         }
 
     }
-} 
+
+
+    async Task ViewFile(IFileListEntry[] files)
+    {
+
+    }
+}

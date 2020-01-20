@@ -1,0 +1,84 @@
+﻿@page "/Files"
+@using System.IO;
+@using BlazorInputFile;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h1>Multiple files</h1>
+
+<p>A multi-file picker that displays information about selection and shows progress as each one is loaded.</p>
+
+<div class="col-md-12">
+    <form method="post" action="#" enctype="multipart/form-data">
+        <label class="fileContainer mydisable" id="fileSelectBox" ondragleave="leaveDrop2(event)" ondrop="onDrop(event)" ondragover="dragOver(event)">
+            <InputFile multiple OnChange="files => selectedFiles = files" />
+        </label>
+    </form>
+
+    <textarea id="chatSend" class="form-control" style="resize:none;" name="chat_message" ondragover="dragOver2(event)" placeholder="Send a message" rows="3"></textarea>
+</div>
+
+
+@if (selectedFiles != null)
+{
+    foreach (var file in selectedFiles)
+    {
+        var isLoading = file.Data.Position > 0;
+
+        <div class="file-row">
+            <!-- File info -->
+            <div>
+                <h2>@file.Name</h2>
+                Size: <strong>@file.Size bytes</strong>;
+                Last modified: <strong>@file.LastModified.ToShortDateString()</strong>;
+                Type: <strong>@file.Type</strong>
+            </div>
+
+            <!-- Upload button -->
+            <button @onclick="() => LoadFile(file)" disabled="@isLoading">
+                @if (!isLoading)
+                {
+                    <span>Load</span>
+                }
+                else
+                {
+                    <span>Loaded @((100.0 * file.Data.Position / file.Size).ToString("0"))%</span>
+                }
+            </button>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public Dictionary<string, object> InputAttributes { get; set; } =
+        new Dictionary<string, object>()
+        {
+            { "hidden", "" },
+            { "id", "file"}
+                };
+
+    IFileListEntry[] selectedFiles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    async Task LoadFile(IFileListEntry file)
+    {
+        // So the UI updates to show progress
+        file.OnDataRead += (sender, eventArgs) => InvokeAsync(StateHasChanged);
+
+        // Just load into .NET memory to show it can be done
+        // Alternatively it could be saved to disk, or parsed in memory, or similar
+        var ms = new System.IO.MemoryStream();
+        await file.Data.CopyToAsync(ms);
+        ms.Seek(0, SeekOrigin.Begin);
+        //File.WriteAllBytes(Path.Combine(_env.WebRootPath, "download", file.Name), ms.ToArray());
+        Console.WriteLine("start@@@@@@@@@@@@@@@@@@@");
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        Console.WriteLine("end@@@@@@@@@@@@@@@@@@@");
+    }
+}
