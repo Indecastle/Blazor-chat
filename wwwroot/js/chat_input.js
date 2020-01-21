@@ -1,7 +1,5 @@
 ﻿var shiftDown = false;
 
-
-
 function initChatEvent() {
     var messageBox = $("#chatSend");
     var button = $("#mybutton");
@@ -86,3 +84,10 @@ function onDrop(e) {
     e.stopPropagation();
 }
 
+
+
+
+function setFocusToTextBox() {
+    document.getElementById("mybutton").focus();
+    document.getElementById("chatSend").focus();
+}

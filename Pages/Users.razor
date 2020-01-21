@@ -8,23 +8,22 @@
 @using BlazorInputFile
 <h3>Users</h3>
 
-@foreach (var employee in employees)
-{
-    <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="@employee.user.UserName" @bind="@employee.Checked">
-        <label class="custom-control-label" for="@employee.user.UserName">@employee.user.UserName</label>
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon3">Chat Name:</span>
     </div>
-}
-<button type="button" class="btn btn-primary btn-lg" @onclick="@CreateChat">Создать беседу</button>
-<div class="col-md-12">
-    <form method="post" action="#" enctype="multipart/form-data">
-        <label class="fileContainer mydisable" id="fileSelectBox" ondragleave="leaveDrop2(event)" ondrop="onDrop(event)" ondragover="dragOver(event)">
-            <InputFile OnChange="ViewFile" @attributes="InputAttributes" />
-        </label>
-    </form>
-
-    <textarea id="chatSend" class="form-control" style="resize:none;" name="chat_message" ondragover="dragOver2(event)" placeholder="Send a message" rows="3"></textarea>
+    <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3" @bind="@NameChat">
 </div>
+<ul class="list-group">
+    @foreach (var employee in employees)
+    {
+        <li class="list-group-item @(employee.Checked ? "active":"")" @onclick="@(e => employee.Checked = !employee.Checked)">
+            @employee.user.UserName
+        </li>
+    }
+</ul>
+
+<button type="button" class="btn btn-primary btn-lg" @onclick="@CreateChat">Создать беседу</button>
 
 
 
@@ -35,12 +34,12 @@
         {
             { "hidden", "" },
             { "id", "file"}
-            };
+        };
 
     List<Employee> employees { get; set; } = new List<Employee>();
     public User user { get; set; }
-
     List<User> UsersAll { get; set; }
+    public string NameChat { get; set; }
 
     public class Employee
     {
@@ -66,15 +65,16 @@
     {
         var userCheckeds = employees.Where(e => e.Checked).Select(e => e.user).ToList();
         userCheckeds.Add(user);
-        if (employees.Count(e => e.Checked) > 0 && _chatService.IsExists(userCheckeds) == false)
+        //var groupChat = _chatService.GetChatByUsers(userCheckeds);
+        if (userCheckeds.Count > 1 && !string.IsNullOrWhiteSpace(NameChat))
         {
-            GroupChat groupChat = new GroupChat();
+            GroupChat groupChat = new GroupChat(NameChat);
             _db.GroupChats.Add(groupChat);
             _db.SaveChanges();
 
             userCheckeds.ForEach(u => u.ChatUsers.Add(new ChatUser { GroupChat = groupChat, User = u }));
             _db.SaveChanges();
-            NavigationManager.NavigateTo($"chat/{groupChat.Id}/", true);
+            NavigationManager.NavigateTo($"chat/{groupChat.Id}/");
         }
 
     }

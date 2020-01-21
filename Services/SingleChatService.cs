@@ -57,10 +57,11 @@ namespace Chat.Services
             return chat;
         }
 
-        public bool IsExists(List<User> users)
+        public GroupChat GetChatByUsers(List<User> users)
         {
             var chats = _db.GroupChats.Include(gc => gc.ChatUsers).ThenInclude(cu => cu.User).ToList();
-            return chats.Any(c => users.All(u => c.ChatUsers.Exists(cu => cu.UserId == u.Id && cu.GroupChatId == c.Id)));
+            //return chats.Any(c => users.All(u => c.ChatUsers.Exists(cu => cu.UserId == u.Id && cu.GroupChatId == c.Id)));
+            return chats.FirstOrDefault(c => users.Count == c.ChatUsers.Count && users.All(u => c.ChatUsers.Exists(cu => cu.UserId == u.Id && cu.GroupChatId == c.Id)));
             //return users.All(u => chats.);
         }
 
@@ -114,15 +115,49 @@ namespace Chat.Services
 
             removeMessages.ForEach(m => _db.Entry(m).State = EntityState.Deleted);
             _db.SaveChanges();
-            //groupChat.Messages = _db.Messages.Include(m => m.GroupChat).Where(m => m.GroupChatID == groupChat.Id).ToList();
             GroupChat.RemoveMessages(groupChat.Messages, removeMessages);
             groupChat.UpdateChat(removeMessages);
         }
 
-        public void UpdateMessages(List<Message> removeMessages)
+        public void RemovedSelectedMessages(List<Message> removeMessages)
         {
             GroupChat.RemoveMessages(LocalMessages, removeMessages);
             //LocalMessages = Message.CopyMessages(groupChat.Messages);
+        }
+
+        public void LogOutFromChat()
+        {
+            if(groupChat.ChatUsers.Count == 1)
+            {
+                _chatService.groupchats.Remove(groupChat);
+                _db.Entry(groupChat).State = EntityState.Deleted;
+                _db.SaveChanges();
+            }
+            else
+            {
+                ChatUser chatUser = groupChat.ChatUsers.FirstOrDefault(cu => cu.UserId == user.Id);
+                _db.Entry(chatUser).State = EntityState.Deleted;
+                _db.SaveChanges();
+                groupChat.ChatUsers.Remove(chatUser);
+            }
+            
+        }
+
+        public void ChangeMessage(string textMessage, Message editingMessage)
+        {
+            var message = groupChat.Messages.FirstOrDefault(m => m.Id == editingMessage.Id);
+            message.Text = textMessage;
+            _db.Entry(message).State = EntityState.Modified;
+            _db.SaveChanges();
+            
+            groupChat.ChangeMessage(textMessage, editingMessage);
+
+        }
+
+        public void ChangedMessage(string textMessage, Message editingMessage)
+        {
+            var message = LocalMessages.FirstOrDefault(m => m.Id == editingMessage.Id);
+            message.Text = textMessage;
         }
     }
 }

@@ -14,6 +14,7 @@ namespace Chat.Models
 
         [Key]
         public int Id { get; set; }
+        public string Name { get; set; }
         public virtual List<Message> Messages { get; set; }
         public virtual List<ChatUser> ChatUsers { get; set; }
 
@@ -23,9 +24,14 @@ namespace Chat.Models
             Messages = new List<Message>();
         }
 
-        public delegate void SendChatHandler(Message newMessage);
-        public event SendChatHandler Sent;
+        public GroupChat(string name) : this()
+        {
+            this.Name = name;
+        }
+
+        public event Action<Message> Sent;
         public event Action<List<Message>> Updated;
+        public event Action<string, Message> ChangedMessage;
 
         public void SendMessage(Message message)
         {
@@ -35,6 +41,11 @@ namespace Chat.Models
         public void UpdateChat(List<Message> removeMessages)
         {
             Updated?.Invoke(removeMessages);
+        }
+
+        public void ChangeMessage(string textMessage, Message editingMessage)
+        {
+            ChangedMessage.Invoke(textMessage, editingMessage);
         }
 
         static public void RemoveMessages(List<Message> messages, List<Message> removedMessages)
