@@ -21,6 +21,7 @@ using Chat.Models;
 using BlazorApp2;
 using Chat.Services;
 using Microsoft.AspNetCore.Http;
+using Amazon.S3;
 
 namespace Chat
 {
@@ -57,6 +58,7 @@ namespace Chat
             })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<User>>();
@@ -89,10 +91,14 @@ namespace Chat
             services.AddSingleton<IEmailSender, EmailSender>();
             services.AddSingleton<ChatService>();
             services.AddScoped<SingleChatService>();
+
+            services.AddSingleton<IS3Service, S3Service>();
+            services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
+            services.AddAWSService<IAmazonS3>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IS3Service _is3)
         {
             app.UseMiddleware<AuthMiddleware>();
 

@@ -159,5 +159,33 @@ namespace Chat.Services
             var message = LocalMessages.FirstOrDefault(m => m.Id == editingMessage.Id);
             message.Text = textMessage;
         }
+
+        public void UploadImageMessage(string url)
+        {
+            var message = new Message
+            {
+                UserName = user.UserName,
+                Text = url,
+                GroupChatID = groupChat.Id,
+                When = DateTime.Now,
+                IsImage = true
+            };
+
+            groupChat.Messages.Add(message);
+            _db.Messages.Add(message);
+            _db.SaveChanges();
+
+            if (groupChat.Messages.Count > GroupChat.limitMessage)
+            {
+                var removelist = groupChat.Messages.Take(groupChat.Messages.Count - GroupChat.limitMessage).ToList();
+                removelist.ForEach(m => _db.Entry(m).State = EntityState.Deleted);
+                groupChat.Messages.RemoveRange(0, groupChat.Messages.Count - GroupChat.limitMessage);
+                _db.SaveChanges();
+
+
+            }
+
+            groupChat.SendMessage(message);
+        }
     }
 }

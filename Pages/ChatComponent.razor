@@ -11,7 +11,9 @@
 @inject IWebHostEnvironment _env;
 @inject SingleChatService _chatService;
 @inject IJSRuntime JsRuntime;
+@inject IS3Service _is3;
 @implements IDisposable
+@attribute [Authorize]
 @**
         <head>
             <link rel="stylesheet" href="~/css/Textcss.css" />
@@ -44,45 +46,55 @@
                 <div class="col-md-6  " id="chat">
                     @if (Messages != null)
                     {
-                        int i = 0, j = 0;
+                        string containerClass, timePosition, textAlign, contcolor;
                         @foreach (var message in Messages.OrderBy(m => m.When))
                         {
-                            i++;
-                        }
-                        i = i - 10;
-                        @foreach (var message in Messages.OrderBy(m => m.When))
-                        {
-                            j++;
 
-                            if (j <= i)
+                            if (user.UserName == message.UserName)
                             {
-
-                            }
-                            else
-                            {
-                                string containerClass, timePosition, textAlign, contcolor;
-                                if (user.UserName == message.UserName)
-                                {
-                                    contcolor = message.Selecting ? "bg-info" : "bg-primary";
-                                    <div class="container darker @contcolor" @onclick="@(e => SelectMessage(message))">
-                                        <p class="sender text-left text-white message-sender">
-                                            @message.UserName
+                                contcolor = message.Selecting ? "bg-info" : "bg-primary";
+                                <div class="container darker @contcolor" @onclick="@(e => SelectMessage(message))">
+                                    <p class="sender text-left text-white message-sender">
+                                        @message.UserName
+                                        @if (!message.IsImage)
+                                        {
                                             <div class="float-right" @onclick="@(e => StartEditMessage(message))" @onclick:stopPropagation="true">
                                                 <i class="fas fa-edit fa-lg"></i>
                                             </div>
-                                        </p>
+                                        }
+                                    </p>
+                                    @if (message.IsImage)
+                                    {
+                                        <div class="text-left text-white message-text">
+                                            <img src="@message.Text">
+                                        </div>
+
+                                    }
+                                    else
+                                    {
                                         <div class="text-left text-white message-text">@MarkdownParser.Parse(message.Text)</div>
-                                        <span class="time-left text-light">@message.When.ToString()</span>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="container bg-light">
-                                        <p class="sender text-left message-sender">@message.UserName</p>
-                                        <div class="text-left message-text">@MarkdownParser.Parse(message.Text)</div>
-                                        <span class="time-left">@message.When.ToString()</span>
-                                    </div>
-                                }
+                                    }
+
+                                    <span class="time-left text-light">@message.When.ToString()</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="container bg-light">
+                                    <p class="sender text-left message-sender">@message.UserName</p>
+                                    @if (message.IsImage)
+                                    {
+                                        <div class="text-left text-white message-text">
+                                            <img src="@message.Text">
+                                        </div>
+
+                                    }
+                                    else
+                                    {
+                                        <div class="text-left text-white message-text">@MarkdownParser.Parse(message.Text)</div>
+                                    }
+                                    <span class="time-left">@message.When.ToString()</span>
+                                </div>
                             }
                         }
                     }
@@ -274,12 +286,20 @@
             using (var ms = new MemoryStream())
             {
                 Task task1 = file.Data.CopyToAsync(ms);
-                await file.Data.CopyToAsync(ms);
                 ms.Seek(0, SeekOrigin.Begin);
-                File.WriteAllBytes(Path.Combine(_env.WebRootPath, "download", file.Name), ms.ToArray());
+                await task1;
+                Console.WriteLine("######### CopyEnded");
+                string filePath = "TempFiles/" + $"{file.Name}-{Guid.NewGuid()}-{file.Type.Substring(1)}";
+                await _is3.UploadObjectAsync(ms, filePath);
+                string urlLink = _is3.GeneratePreSignedURL(filePath, false, file.Name);
+                Console.WriteLine("######### UploadedToS3");
+
+                _chatService.UploadImageMessage(urlLink);
+
             }
 
             status = DefaultStatus;
         }
+        await InvokeAsync(StateHasChanged);
     }
 }
