@@ -13,7 +13,7 @@ namespace Chat.Data
 {
     public static class ChatHelper
     {
-        static readonly string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".svg", ".kek" };
+        static readonly string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".svg", ".ico" };
 
         public static MarkupString Parse(string markdown)
         {

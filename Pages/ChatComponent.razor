@@ -53,7 +53,7 @@
                             if (user.UserName == message.UserName)
                             {
                                 contcolor = message.Selecting ? "bg-info" : "bg-primary";
-                                <div class="container darker @contcolor" @onclick="@(e => SelectMessage(message))">
+                                <div class="container darker @contcolor" @onmousedown="@(e => SelectMessage(message))">
                                     <p class="sender text-left text-white message-sender">
                                         @message.UserName
                                         @if (!message.IsFile)
@@ -63,7 +63,7 @@
                                             </div>
                                         }
                                     </p>
-                                    <div class="text-left text-white message-text " @onclick:stopPropagation>@ChatHelper.ConvertUrl(message)</div>
+                                    <div class="text-left text-white message-text " @onmousedown:stopPropagation>@ChatHelper.ConvertUrl(message)</div>
                                     <span class="time-left text-light">@message.When.ToString()</span>
                                 </div>
                             }
