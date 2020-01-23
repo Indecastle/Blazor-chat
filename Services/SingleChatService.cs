@@ -57,7 +57,7 @@ namespace Chat.Services
             return chat;
         }
 
-        public GroupChat GetChatByUsers(List<User> users)
+        public GroupChat GetChatByUsers(List<User> users) // useless
         {
             var chats = _db.GroupChats.Include(gc => gc.ChatUsers).ThenInclude(cu => cu.User).ToList();
             //return chats.Any(c => users.All(u => c.ChatUsers.Exists(cu => cu.UserId == u.Id && cu.GroupChatId == c.Id)));
@@ -86,15 +86,7 @@ namespace Chat.Services
             _db.Messages.Add(message);
             _db.SaveChanges();
 
-            if (groupChat.Messages.Count > GroupChat.limitMessage)
-            {
-                var removelist = groupChat.Messages.Take(groupChat.Messages.Count - GroupChat.limitMessage).ToList();
-                removelist.ForEach(m => _db.Entry(m).State = EntityState.Deleted);
-                groupChat.Messages.RemoveRange(0, groupChat.Messages.Count - GroupChat.limitMessage);
-                _db.SaveChanges();
-
-
-            }
+            CutOutMessages();
 
             groupChat.SendMessage(message);
         }
@@ -160,7 +152,7 @@ namespace Chat.Services
             message.Text = textMessage;
         }
 
-        public void UploadImageMessage(string url)
+        public void UploadImageMessage(string url, string fileName)
         {
             var message = new Message
             {
@@ -168,13 +160,21 @@ namespace Chat.Services
                 Text = url,
                 GroupChatID = groupChat.Id,
                 When = DateTime.Now,
-                IsImage = true
+                IsFile = true,
+                FileName = fileName
             };
 
             groupChat.Messages.Add(message);
             _db.Messages.Add(message);
             _db.SaveChanges();
 
+            CutOutMessages();
+
+            groupChat.SendMessage(message);
+        }
+
+        private void CutOutMessages()
+        {
             if (groupChat.Messages.Count > GroupChat.limitMessage)
             {
                 var removelist = groupChat.Messages.Take(groupChat.Messages.Count - GroupChat.limitMessage).ToList();
@@ -184,8 +184,6 @@ namespace Chat.Services
 
 
             }
-
-            groupChat.SendMessage(message);
         }
     }
 }

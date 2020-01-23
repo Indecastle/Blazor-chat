@@ -3,42 +3,7 @@
 for details on configuring this project to bundle and minify static web assets. */
 
 
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-}
 
-.border-top {
-    border-top: 1px solid #e5e5e5;
-}
-
-.border-bottom {
-    border-bottom: 1px solid #e5e5e5;
-}
-
-.box-shadow {
-    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
-}
-
-button.accept-policy {
-    font-size: 1rem;
-    line-height: inherit;
-}
-
-/* Sticky footer styles
--------------------------------------------------- */
-
-
-.footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    white-space: nowrap;
-    /* Set the fixed height of the footer here */
-    height: 60px;
-    line-height: 60px; /* Vertically center the text there */
-}
 
 
 /* Chat containers */
@@ -48,6 +13,7 @@ button.accept-policy {
     padding: 10px;
     margin: 10px 0;
     width: 100%;
+    overflow-x: overlay;
 }
 
 #chat .sender {
@@ -97,7 +63,6 @@ button.accept-policy {
 
 #chat .text-righte {
     text-align: right;
-
 }
 
 /* Style time text */
@@ -116,13 +81,19 @@ button.accept-policy {
 
 .message-text {
     white-space: pre-wrap;
+    display: grid;
+    word-wrap: break-word;
+    width: max-content;
 }
+
     .message-text > ul {
         white-space: normal;
     }
+
     .message-text > p, h1, h2, h3, h4, h5, h6 {
         display: inline-block;
     }
+
     .message-text > ul, ol, li {
         margin-top: 0;
         margin-bottom: 0;
@@ -140,7 +111,17 @@ button.accept-policy {
         border-collapse: collapse;
     }
 
+    .message-text > img {
+        float: left !important;
+        max-width: 100px !important;
+        width: 100% !important;
+        margin-right: 20px !important;
+        border-radius: 20% !important;
+    }
 
+    .message-text > a {
+        color: #002854;
+    }
 
 
 .chat_field {
@@ -240,7 +221,6 @@ button.accept-policy {
 .mydiv1 {
     display: block;
     width: 100%;
-    
     height: auto;
     padding: .375rem .75rem;
     font-size: 1rem;

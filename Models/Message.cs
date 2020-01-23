@@ -15,7 +15,8 @@ namespace Chat.Models
         public DateTime When { get; set; }
         public int GroupChatID { get; set; }
         public GroupChat GroupChat { get; set; }
-        public bool IsImage { get; set; }
+        public bool IsFile { get; set; }
+        public string FileName { get; set; }
         [NotMapped]
         public bool Selecting { get; set; }
 
@@ -32,6 +33,8 @@ namespace Chat.Models
             this.Selecting = message.Selecting;
             this.GroupChatID = message.GroupChatID;
             this.GroupChat = message.GroupChat;
+            this.IsFile = message.IsFile;
+            this.FileName = message.FileName;
         }
 
         public static List<Message> CopyMessages(List<Message> messages)

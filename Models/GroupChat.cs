@@ -10,7 +10,7 @@ namespace Chat.Models
 {
     public class GroupChat
     {
-        public const int limitMessage = 10;
+        public const int limitMessage = 20;
 
         [Key]
         public int Id { get; set; }
